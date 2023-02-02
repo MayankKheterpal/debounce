@@ -1,24 +1,51 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useRef, useState } from "react";
+import "./App.css";
+import useDebounce from "./hooks/useDebounce";
+import { getMovies } from "./utils";
 
 function App() {
+  const [userUtterance, setUserUtterance] = useState("");
+  const [resultList, setResultList] = useState<string[]>();
+  const debouncedValue = useDebounce(userUtterance);
+  // const unmounted = useRef(false);
+
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      setResultList([]);
+      if (debouncedValue.length > 0) {
+        const filteredValues = await getMovies(debouncedValue);
+        // console.log(unmounted.current);
+        if (!ignore) {
+          console.log(debouncedValue);
+          setResultList(filteredValues);
+        }
+      }
+    })();
+
+    return () => {
+      // unmounted.current = true;
+      ignore = true;
+    };
+  }, [debouncedValue]);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <input
+        className="Text-box"
+        type="text"
+        name="textbox"
+        id="text-1"
+        value={userUtterance}
+        onChange={(e) => setUserUtterance(e.target.value)}
+      />
+      {resultList
+        ? resultList.map((result, index) => (
+            <div className="results" key={index}>
+              {result}
+            </div>
+          ))
+        : null}
     </div>
   );
 }
