@@ -1,33 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import "./App.css";
 import useDebounce from "./hooks/useDebounce";
 import { getMovies } from "./utils";
 
 function App() {
-  const [userUtterance, setUserUtterance] = useState("");
   const [resultList, setResultList] = useState<string[]>();
-  const debouncedValue = useDebounce(userUtterance);
-  // const unmounted = useRef(false);
 
-  useEffect(() => {
-    let ignore = false;
-    (async () => {
-      setResultList([]);
-      if (debouncedValue.length > 0) {
-        const filteredValues = await getMovies(debouncedValue);
-        // console.log(unmounted.current);
-        if (!ignore) {
-          console.log(debouncedValue);
-          setResultList(filteredValues);
-        }
-      }
-    })();
+  const onChange = useCallback(async (value: string) => {
+    setResultList([]);
+    if (value.length > 0) {
+      const filteredValues = await getMovies(value);
+      setResultList(filteredValues);
+    }
+  }, []);
 
-    return () => {
-      // unmounted.current = true;
-      ignore = true;
-    };
-  }, [debouncedValue]);
+  const debounce = useDebounce(onChange);
 
   return (
     <div className="App">
@@ -36,8 +23,7 @@ function App() {
         type="text"
         name="textbox"
         id="text-1"
-        value={userUtterance}
-        onChange={(e) => setUserUtterance(e.target.value)}
+        onChange={(e) => debounce(e.target.value)}
       />
       {resultList
         ? resultList.map((result, index) => (
